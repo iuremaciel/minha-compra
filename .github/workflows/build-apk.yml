@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
 
       - name: Configurar Android SDK
         uses: android-actions/setup-android@v4
@@ -33,11 +33,11 @@ jobs:
       - name: Instalar dependências
         run: npm install
 
-      - name: Criar projeto Android
-        run: npx cap add android
-
       - name: Gerar aplicação web
         run: npm run build
+
+      - name: Criar projeto Android
+        run: npx cap add android
 
       - name: Sincronizar Capacitor
         run: npx cap sync android
