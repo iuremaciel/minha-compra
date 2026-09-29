@@ -1,11 +1,570 @@
-import React,{useEffect,useMemo,useState}from'react';import{createRoot}from'react-dom/client';import{Plus,Trash2,Pencil,Check,ShoppingCart,History,PackagePlus,X,ChevronRight,RotateCcw}from'lucide-react';import'./styles.css';
-const PK='mc-products',CK='mc-cart',HK='mc-history';
-const starter=[{id:crypto.randomUUID(),name:'Arroz',price:0},{id:crypto.randomUUID(),name:'Feijão',price:0},{id:crypto.randomUUID(),name:'Leite',price:0},{id:crypto.randomUUID(),name:'Café',price:0}];
-const load=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}};const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-function App(){const[products,setProducts]=useState(()=>load(PK,starter)),[cart,setCart]=useState(()=>load(CK,{})),[history,setHistory]=useState(()=>load(HK,[])),[tab,setTab]=useState('comprar'),[modal,setModal]=useState(null),[name,setName]=useState(''),[detail,setDetail]=useState(null),[toast,setToast]=useState('');useEffect(()=>localStorage.setItem(PK,JSON.stringify(products)),[products]);useEffect(()=>localStorage.setItem(CK,JSON.stringify(cart)),[cart]);useEffect(()=>localStorage.setItem(HK,JSON.stringify(history)),[history]);
-const total=useMemo(()=>products.reduce((s,p)=>s+(cart[p.id]?.qty||0)*Number(cart[p.id]?.price??p.price??0),0),[products,cart]);const count=useMemo(()=>products.reduce((s,p)=>s+Number(cart[p.id]?.qty||0),0),[products,cart]);
-const upd=(id,x)=>setCart(c=>({...c,[id]:{qty:0,price:products.find(p=>p.id===id)?.price||0,bought:false,...(c[id]||{}),...x}}));const qty=(id,d)=>upd(id,{qty:Math.max(0,Number(cart[id]?.qty||0)+d)});
-function add(e){e.preventDefault();if(!name.trim())return;setProducts(p=>[...p,{id:crypto.randomUUID(),name:name.trim(),price:0}]);setName('');setModal(null)}function edit(e){e.preventDefault();setProducts(p=>p.map(x=>x.id===modal.id?{...x,name:name.trim()}:x));setName('');setModal(null)}
-function remove(id){if(confirm('Excluir este produto da lista permanente?')){setProducts(p=>p.filter(x=>x.id!==id));setCart(c=>{let n={...c};delete n[id];return n})}}
-function finish(){if(!count){setToast('Adicione pelo menos 1 item');setTimeout(()=>setToast(''),1800);return}const items=products.filter(p=>(cart[p.id]?.qty||0)>0).map(p=>({name:p.name,qty:Number(cart[p.id].qty),price:Number(cart[p.id].price??p.price??0)}));setHistory(h=>[{id:crypto.randomUUID(),date:new Date().toISOString(),items,total:items.reduce((s,i)=>s+i.qty*i.price,0)},...h]);setCart({});setToast('Compra salva no histórico');setTimeout(()=>setToast(''),1800)}
-return <div className="app"><header><div className="brand"><ShoppingCart/> Minha Compra</div><small>Lista de compras simples e rápida</small></header><main>{tab==='comprar'?<><section className="title"><div><h1>Minha compra</h1><p>{count?`${count} ${count===1?'item':'itens'} na compra`:'Comece adicionando as quantidades.'}</p></div><button className="add" onClick={()=>{setName('');setModal('add')}}><Plus/> Produto</button></section><div className="list">{products.map(p=>{let c=cart[p.id]||{},q=Number(c.qty||0),price=c.price??p.price??0;return <article className={c.bought?'bought':''} key={p.id}><button className={'check '+(c.bought?'on':'')} onClick={()=>upd(p.id,{bought:!c.bought})}>{c.bought&&<Check/>}</button><div className="info"><b>{p.name}</b><label>R$ <input inputMode="decimal" value={price?String(price).replace('.',','):''} placeholder="0,00" onChange={e=>upd(p.id,{price:e.target.value.replace(',','.')})}/></label></div><div className="q"><button disabled={!q} onClick={()=>qty(p.id,-1)}>−</button><strong>{q}</strong><button onClick={()=>qty(p.id,1)}>+</button></div><strong className="line">{money(q*Number(price||0))}</strong></article>})}</div></>:<><section className="title"><div><h1>Histórico</h1><p>Compras finalizadas</p></div></section>{!history.length?<div className="empty"><History size={42}/><h3>Nenhuma compra salva</h3><p>Finalize uma compra para vê-la aqui.</p></div>:<div className="history">{history.map(p=><button key={p.id} onClick={()=>setDetail(p)}><span className="hi"><History/></span><span className="hm"><b>{new Date(p.date).toLocaleDateString('pt-BR')}</b><small>{p.items.reduce((s,i)=>s+i.qty,0)} itens</small></span><strong>{money(p.total)}</strong><ChevronRight/></button>)}</div>}</>}</main>{tab==='comprar'&&<div className="checkout"><div><small>Total da compra</small><strong>{money(total)}</strong></div><button onClick={finish}>Finalizar compra <Check/></button></div>}<nav><button className={tab==='comprar'?'sel':''} onClick={()=>setTab('comprar')}><ShoppingCart/>Comprar</button><button className={tab==='historico'?'sel':''} onClick={()=>setTab('historico')}><History/>Histórico</button></nav>{modal&&<div className="back" onMouseDown={()=>setModal(null)}><form className="modal" onSubmit={modal==='add'?add:edit} onMouseDown={e=>e.stopPropagation()}><div className="mh"><h2>{modal==='add'?'Novo produto':'Editar produto'}</h2><button type="button" onClick={()=>setModal(null)}><X/></button></div><label>Nome do produto</label><input autoFocus value={name} onChange={e=>setName(e.target.value)} placeholder="Ex.: Sabonete"/><button className="primary"><Check/>Salvar</button></form></div>}{detail&&<div className="back" onMouseDown={()=>setDetail(null)}><div className="modal" onMouseDown={e=>e.stopPropagation()}><div className="mh"><div><h2>Detalhes da compra</h2><small>{new Date(detail.date).toLocaleString('pt-BR')}</small></div><button onClick={()=>setDetail(null)}><X/></button></div>{detail.items.map((i,k)=><div className="row" key={k}><span>{i.qty}× {i.name}</span><b>{money(i.qty*i.price)}</b></div>)}<div className="dt"><span>Total</span><b>{money(detail.total)}</b></div></div></div>}{toast&&<div className="toast">{toast}</div>}</div>};createRoot(document.getElementById('root')).render(<App/>);
+import React, { useEffect, useMemo, useState } from "react";
+import { createRoot } from "react-dom/client";
+import {
+  Plus, Trash2, Check, ShoppingCart, History,
+  X, ChevronRight, RotateCcw
+} from "lucide-react";
+import "./styles.css";
+
+const PK = "mc-products";
+const CK = "mc-cart";
+const HK = "mc-history";
+
+const starter = [
+  { id: crypto.randomUUID(), name: "Arroz", price: 0 },
+  { id: crypto.randomUUID(), name: "Feijão", price: 0 },
+  { id: crypto.randomUUID(), name: "Leite", price: 0 },
+  { id: crypto.randomUUID(), name: "Café", price: 0 }
+];
+
+const load = (key, fallback) => {
+  try {
+    return JSON.parse(localStorage.getItem(key)) ?? fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const money = (value) =>
+  Number(value || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+
+function App() {
+  const [products, setProducts] = useState(() => load(PK, starter));
+  const [cart, setCart] = useState(() => load(CK, {}));
+  const [history, setHistory] = useState(() => load(HK, []));
+  const [tab, setTab] = useState("comprar");
+  const [modal, setModal] = useState(null);
+  const [name, setName] = useState("");
+  const [detail, setDetail] = useState(null);
+  const [toast, setToast] = useState("");
+  const [swipeStart, setSwipeStart] = useState(null);
+
+  useEffect(() => localStorage.setItem(PK, JSON.stringify(products)), [products]);
+  useEffect(() => localStorage.setItem(CK, JSON.stringify(cart)), [cart]);
+  useEffect(() => localStorage.setItem(HK, JSON.stringify(history)), [history]);
+
+  const total = useMemo(
+    () =>
+      products.reduce(
+        (sum, p) =>
+          sum +
+          Number(cart[p.id]?.qty || 0) *
+            Number(cart[p.id]?.price ?? p.price ?? 0),
+        0
+      ),
+    [products, cart]
+  );
+
+  const count = useMemo(
+    () =>
+      products.reduce(
+        (sum, p) => sum + Number(cart[p.id]?.qty || 0),
+        0
+      ),
+    [products, cart]
+  );
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(""), 1800);
+  };
+
+  const updateCart = (id, changes) => {
+    setCart((current) => ({
+      ...current,
+      [id]: {
+        qty: 0,
+        price: products.find((p) => p.id === id)?.price || 0,
+        bought: false,
+        ...(current[id] || {}),
+        ...changes
+      }
+    }));
+  };
+
+  const changeQty = (id, delta) => {
+    updateCart(id, {
+      qty: Math.max(0, Number(cart[id]?.qty || 0) + delta)
+    });
+  };
+
+  function add(e) {
+    e.preventDefault();
+    const productName = name.trim();
+    if (!productName) return;
+
+    setProducts((current) => [
+      ...current,
+      { id: crypto.randomUUID(), name: productName, price: 0 }
+    ]);
+    setName("");
+    setModal(null);
+    showToast("Produto adicionado");
+  }
+
+  function edit(e) {
+    e.preventDefault();
+    const productName = name.trim();
+    if (!productName || !modal || modal === "add") return;
+
+    setProducts((current) =>
+      current.map((p) =>
+        p.id === modal.id ? { ...p, name: productName } : p
+      )
+    );
+    setName("");
+    setModal(null);
+    showToast("Nome do produto alterado");
+  }
+
+  function removeProduct(id) {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+
+    if (!window.confirm(`Excluir "${product.name}" da lista permanente?`)) {
+      return;
+    }
+
+    setProducts((current) => current.filter((p) => p.id !== id));
+    setCart((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+    showToast("Produto excluído");
+  }
+
+  function handleSwipeStart(e, id) {
+    const touch = e.touches?.[0];
+    if (!touch) return;
+
+    setSwipeStart({
+      id,
+      x: touch.clientX,
+      y: touch.clientY
+    });
+  }
+
+  function handleSwipeEnd(e, id) {
+    if (!swipeStart || swipeStart.id !== id) return;
+
+    const touch = e.changedTouches?.[0];
+    if (!touch) {
+      setSwipeStart(null);
+      return;
+    }
+
+    const dx = touch.clientX - swipeStart.x;
+    const dy = Math.abs(touch.clientY - swipeStart.y);
+    setSwipeStart(null);
+
+    // Só reconhece gestos horizontais de pelo menos 80px.
+    if (Math.abs(dx) < 80 || dy > Math.abs(dx) * 0.8) return;
+
+    if (dx < 0) {
+      // Esquerda = excluir
+      removeProduct(id);
+    } else {
+      // Direita = editar nome
+      const product = products.find((p) => p.id === id);
+      if (product) {
+        setModal(product);
+        setName(product.name);
+      }
+    }
+  }
+
+  function finish() {
+    if (!count) {
+      showToast("Adicione pelo menos 1 item");
+      return;
+    }
+
+    const items = products
+      .filter((p) => (cart[p.id]?.qty || 0) > 0)
+      .map((p) => ({
+        name: p.name,
+        qty: Number(cart[p.id].qty),
+        price: Number(cart[p.id].price ?? p.price ?? 0)
+      }));
+
+    setHistory((current) => [
+      {
+        id: crypto.randomUUID(),
+        date: new Date().toISOString(),
+        items,
+        total: items.reduce((sum, item) => sum + item.qty * item.price, 0)
+      },
+      ...current
+    ]);
+
+    setCart({});
+    showToast("Compra salva no histórico");
+  }
+
+  function deleteHistoryItem(id) {
+    const purchase = history.find((p) => p.id === id);
+    if (!purchase) return;
+
+    if (
+      !window.confirm(
+        `Excluir a compra de ${new Date(purchase.date).toLocaleDateString(
+          "pt-BR"
+        )} do histórico?`
+      )
+    ) {
+      return;
+    }
+
+    setHistory((current) => current.filter((p) => p.id !== id));
+    if (detail?.id === id) setDetail(null);
+    showToast("Compra excluída do histórico");
+  }
+
+  function clearHistory() {
+    if (!history.length) return;
+
+    if (
+      !window.confirm(
+        "Excluir todo o histórico de compras? Essa ação não pode ser desfeita."
+      )
+    ) {
+      return;
+    }
+
+    setHistory([]);
+    setDetail(null);
+    showToast("Histórico excluído");
+  }
+
+  function reopenPurchase(purchase) {
+    const next = {};
+
+    purchase.items.forEach((item) => {
+      const product = products.find(
+        (p) => p.name.toLowerCase() === item.name.toLowerCase()
+      );
+
+      if (product) {
+        next[product.id] = {
+          qty: item.qty,
+          price: item.price,
+          bought: false
+        };
+      }
+    });
+
+    setCart(next);
+    setDetail(null);
+    setTab("comprar");
+    showToast("Itens da compra foram carregados");
+  }
+
+  function clearCurrent() {
+    if (!count) return;
+    if (window.confirm("Limpar todos os itens da compra atual?")) {
+      setCart({});
+    }
+  }
+
+  return (
+    <div className="app">
+      <header>
+        <div className="brand">
+          <ShoppingCart />
+          Minha Compra
+        </div>
+        <small>Lista de compras simples e rápida</small>
+      </header>
+
+      <main>
+        {tab === "comprar" ? (
+          <>
+            <section className="title">
+              <div>
+                <h1>Minha compra</h1>
+                <p>
+                  {count
+                    ? `${count} ${count === 1 ? "item" : "itens"} na compra`
+                    : "Comece adicionando as quantidades."}
+                </p>
+              </div>
+
+              <div className="title-actions">
+                {count > 0 && (
+                  <button
+                    className="clear-current"
+                    onClick={clearCurrent}
+                    title="Limpar compra"
+                  >
+                    <RotateCcw size={18} />
+                  </button>
+                )}
+                <button
+                  className="add"
+                  onClick={() => {
+                    setName("");
+                    setModal("add");
+                  }}
+                >
+                  <Plus />
+                  Produto
+                </button>
+              </div>
+            </section>
+
+            <div className="swipe-hint">
+              <span>← arraste para excluir</span>
+              <span>arraste para editar →</span>
+            </div>
+
+            <div className="list">
+              {products.map((p) => {
+                const c = cart[p.id] || {};
+                const q = Number(c.qty || 0);
+                const price = c.price ?? p.price ?? 0;
+
+                return (
+                  <article
+                    className={c.bought ? "bought" : ""}
+                    key={p.id}
+                    onTouchStart={(e) => handleSwipeStart(e, p.id)}
+                    onTouchEnd={(e) => handleSwipeEnd(e, p.id)}
+                  >
+                    <button
+                      className={"check " + (c.bought ? "on" : "")}
+                      onClick={() =>
+                        updateCart(p.id, { bought: !c.bought })
+                      }
+                    >
+                      {c.bought && <Check />}
+                    </button>
+
+                    <div className="info">
+                      <b>{p.name}</b>
+                      <label>
+                        R${" "}
+                        <input
+                          inputMode="decimal"
+                          value={
+                            price
+                              ? String(price).replace(".", ",")
+                              : ""
+                          }
+                          placeholder="0,00"
+                          onChange={(e) =>
+                            updateCart(p.id, {
+                              price: e.target.value.replace(",", ".")
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <div className="q">
+                      <button
+                        disabled={!q}
+                        onClick={() => changeQty(p.id, -1)}
+                      >
+                        −
+                      </button>
+                      <strong>{q}</strong>
+                      <button onClick={() => changeQty(p.id, 1)}>
+                        +
+                      </button>
+                    </div>
+
+                    <strong className="line">
+                      {money(q * Number(price || 0))}
+                    </strong>
+                  </article>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <section className="title">
+              <div>
+                <h1>Histórico</h1>
+                <p>Compras finalizadas</p>
+              </div>
+
+              {history.length > 0 && (
+                <button className="clear-history" onClick={clearHistory}>
+                  <Trash2 size={18} />
+                  Limpar
+                </button>
+              )}
+            </section>
+
+            {!history.length ? (
+              <div className="empty">
+                <History size={42} />
+                <h3>Nenhuma compra salva</h3>
+                <p>Finalize uma compra para vê-la aqui.</p>
+              </div>
+            ) : (
+              <div className="history">
+                {history.map((p) => (
+                  <div className="history-card" key={p.id}>
+                    <button
+                      className="history-open"
+                      onClick={() => setDetail(p)}
+                    >
+                      <span className="hi">
+                        <History />
+                      </span>
+
+                      <span className="hm">
+                        <b>
+                          {new Date(p.date).toLocaleDateString("pt-BR")}
+                        </b>
+                        <small>
+                          {p.items.reduce((sum, i) => sum + i.qty, 0)} itens
+                        </small>
+                      </span>
+
+                      <strong>{money(p.total)}</strong>
+                      <ChevronRight />
+                    </button>
+
+                    <button
+                      className="history-delete"
+                      title="Excluir compra"
+                      aria-label="Excluir compra"
+                      onClick={() => deleteHistoryItem(p.id)}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </main>
+
+      {tab === "comprar" && (
+        <div className="checkout">
+          <div>
+            <small>Total da compra</small>
+            <strong>{money(total)}</strong>
+          </div>
+
+          <button onClick={finish}>
+            Finalizar compra <Check />
+          </button>
+        </div>
+      )}
+
+      <nav>
+        <button
+          className={tab === "comprar" ? "sel" : ""}
+          onClick={() => setTab("comprar")}
+        >
+          <ShoppingCart />
+          Comprar
+        </button>
+
+        <button
+          className={tab === "historico" ? "sel" : ""}
+          onClick={() => setTab("historico")}
+        >
+          <History />
+          Histórico
+        </button>
+      </nav>
+
+      {modal && (
+        <div className="back" onMouseDown={() => setModal(null)}>
+          <form
+            className="modal"
+            onSubmit={modal === "add" ? add : edit}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="mh">
+              <h2>
+                {modal === "add" ? "Novo produto" : "Editar produto"}
+              </h2>
+              <button type="button" onClick={() => setModal(null)}>
+                <X />
+              </button>
+            </div>
+
+            <label>Nome do produto</label>
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex.: Sabonete"
+            />
+
+            <button className="primary">
+              <Check />
+              Salvar
+            </button>
+          </form>
+        </div>
+      )}
+
+      {detail && (
+        <div className="back" onMouseDown={() => setDetail(null)}>
+          <div
+            className="modal"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="mh">
+              <div>
+                <h2>Detalhes da compra</h2>
+                <small>
+                  {new Date(detail.date).toLocaleString("pt-BR")}
+                </small>
+              </div>
+
+              <button onClick={() => setDetail(null)}>
+                <X />
+              </button>
+            </div>
+
+            {detail.items.map((item, index) => (
+              <div className="row" key={index}>
+                <span>
+                  {item.qty}× {item.name}
+                </span>
+                <b>{money(item.qty * item.price)}</b>
+              </div>
+            ))}
+
+            <div className="dt">
+              <span>Total</span>
+              <b>{money(detail.total)}</b>
+            </div>
+
+            <button
+              className="primary"
+              onClick={() => reopenPurchase(detail)}
+            >
+              Reutilizar esta compra
+            </button>
+
+            <button
+              className="danger-button"
+              onClick={() => deleteHistoryItem(detail.id)}
+            >
+              <Trash2 size={18} />
+              Excluir esta compra
+            </button>
+          </div>
+        </div>
+      )}
+
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  );
+}
+
+createRoot(document.getElementById("root")).render(<App />);
