@@ -1,0 +1,9 @@
+{
+  "name": "minha-compra",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {"dev":"vite","build":"vite build","preview":"vite preview","android:add":"npx cap add android","android:sync":"npm run build && npx cap sync android","android:open":"npx cap open android"},
+  "dependencies": {"@capacitor/android":"^7.4.0","@capacitor/core":"^7.4.0","lucide-react":"^0.468.0","react":"^19.1.1","react-dom":"^19.1.1","vite":"^7.1.7"},
+  "devDependencies": {"@capacitor/cli":"^7.4.0"}
+}
