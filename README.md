@@ -24,3 +24,10 @@ O APK de debug normalmente ficará em `android/app/build/outputs/apk/debug/app-d
 - Finalizar compra
 - Histórico
 - Dados persistidos no celular com localStorage
+
+
+### Atualização
+- Arraste um produto para a esquerda para excluí-lo da lista permanente.
+- Arraste um produto para a direita para editar o nome.
+- No Histórico, é possível excluir uma compra individual.
+- Também existe a opção de limpar todo o histórico.
