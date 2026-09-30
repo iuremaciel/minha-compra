@@ -41,6 +41,7 @@ function App() {
   const [detail, setDetail] = useState(null);
   const [toast, setToast] = useState("");
   const [swipeStart, setSwipeStart] = useState(null);
+  const [swipe, setSwipe] = useState(null);
 
   useEffect(() => localStorage.setItem(PK, JSON.stringify(products)), [products]);
   useEffect(() => localStorage.setItem(CK, JSON.stringify(cart)), [cart]);
@@ -138,24 +139,114 @@ function App() {
   }
 
   function handleSwipeStart(e, id) {
-    const touch = e.touches?.[0];
-    if (!touch) return;
+  const touch = e.touches?.[0];
+  if (!touch) return;
 
-    setSwipeStart({
-      id,
-      x: touch.clientX,
-      y: touch.clientY
-    });
+  setSwipeStart({
+    id,
+    x: touch.clientX,
+    y: touch.clientY
+  });
+
+  setSwipe({
+    id,
+    dx: 0,
+    active: true
+  });
+}
+
+function handleSwipeMove(e, id) {
+  if (!swipeStart || swipeStart.id !== id) return;
+
+  const touch = e.touches?.[0];
+  if (!touch) return;
+
+  const rawDx = touch.clientX - swipeStart.x;
+  const dy = Math.abs(touch.clientY - swipeStart.y);
+
+  // Evita confundir rolagem vertical com o gesto de arrastar
+  if (dy > Math.abs(rawDx) + 18) return;
+
+  // Limite máximo do movimento
+  const max = 145;
+
+  const dx = Math.max(
+    -max,
+    Math.min(max, rawDx)
+  );
+
+  setSwipe({
+    id,
+    dx,
+    active: true
+  });
+}
+
+function handleSwipeEnd(e, id) {
+  if (!swipeStart || swipeStart.id !== id) return;
+
+  const touch = e.changedTouches?.[0];
+
+  const dx = touch
+    ? touch.clientX - swipeStart.x
+    : 0;
+
+  const dy = touch
+    ? Math.abs(touch.clientY - swipeStart.y)
+    : 0;
+
+  setSwipeStart(null);
+
+  // Movimento pequeno = cancela
+  if (
+    Math.abs(dx) < 80 ||
+    dy > Math.abs(dx) * 0.8
+  ) {
+    setSwipe(null);
+    return;
   }
 
-  function handleSwipeEnd(e, id) {
-    if (!swipeStart || swipeStart.id !== id) return;
+  // ARRASTOU PARA A ESQUERDA
+  if (dx < 0) {
 
-    const touch = e.changedTouches?.[0];
-    if (!touch) {
-      setSwipeStart(null);
-      return;
-    }
+    setSwipe({
+      id,
+      dx: -145,
+      active: true,
+      action: "delete"
+    });
+
+    setTimeout(() => {
+      removeProduct(id);
+      setSwipe(null);
+    }, 180);
+
+  } else {
+
+    // ARRastou PARA A DIREITA
+    setSwipe({
+      id,
+      dx: 145,
+      active: true,
+      action: "edit"
+    });
+
+    setTimeout(() => {
+
+      const product = products.find(
+        p => p.id === id
+      );
+
+      setSwipe(null);
+
+      if (product) {
+        setModal(product);
+        setName(product.name);
+      }
+
+    }, 180);
+  }
+}
 
     const dx = touch.clientX - swipeStart.x;
     const dy = Math.abs(touch.clientY - swipeStart.y);
@@ -328,12 +419,141 @@ function App() {
                 const price = c.price ?? p.price ?? 0;
 
                 return (
-                  <article
-                    className={c.bought ? "bought" : ""}
-                    key={p.id}
-                    onTouchStart={(e) => handleSwipeStart(e, p.id)}
-                    onTouchEnd={(e) => handleSwipeEnd(e, p.id)}
-                  >
+                  <div
+  className={
+    "swipe-row " +
+    (swipe?.id === p.id && swipe.active
+      ? "swiping "
+      : "") +
+    (swipe?.id === p.id &&
+    swipe.action === "delete"
+      ? "confirm-delete "
+      : "") +
+    (swipe?.id === p.id &&
+    swipe.action === "edit"
+      ? "confirm-edit"
+      : "")
+  }
+  key={p.id}
+>
+
+  {/* ÁREA VERMELHA - EXCLUIR */}
+  <div className="swipe-action swipe-delete">
+    <Trash2 size={22} />
+    <span>Excluir</span>
+  </div>
+
+  {/* ÁREA VERDE - EDITAR */}
+  <div className="swipe-action swipe-edit">
+    <span className="edit-icon">✎</span>
+    <span>Editar</span>
+  </div>
+
+  <article
+    className={
+      c.bought
+        ? "bought swipe-card"
+        : "swipe-card"
+    }
+
+    style={{
+      transform:
+        swipe?.id === p.id
+          ? `translateX(${swipe.dx}px)`
+          : "translateX(0)"
+    }}
+
+    onTouchStart={(e) =>
+      handleSwipeStart(e, p.id)
+    }
+
+    onTouchMove={(e) =>
+      handleSwipeMove(e, p.id)
+    }
+
+    onTouchEnd={(e) =>
+      handleSwipeEnd(e, p.id)
+    }
+  >
+
+    <button
+      className={
+        "check " +
+        (c.bought ? "on" : "")
+      }
+
+      onClick={() =>
+        updateCart(p.id, {
+          bought: !c.bought
+        })
+      }
+    >
+      {c.bought && <Check />}
+    </button>
+
+    <div className="info">
+
+      <b>{p.name}</b>
+
+      <label>
+        R${" "}
+
+        <input
+          inputMode="decimal"
+
+          value={
+            price
+              ? String(price).replace(".", ",")
+              : ""
+          }
+
+          placeholder="0,00"
+
+          onChange={(e) =>
+            updateCart(p.id, {
+              price:
+                e.target.value
+                  .replace(",", ".")
+            })
+          }
+        />
+
+      </label>
+
+    </div>
+
+    <div className="q">
+
+      <button
+        disabled={!q}
+        onClick={() =>
+          changeQty(p.id, -1)
+        }
+      >
+        −
+      </button>
+
+      <strong>{q}</strong>
+
+      <button
+        onClick={() =>
+          changeQty(p.id, 1)
+        }
+      >
+        +
+      </button>
+
+    </div>
+
+    <strong className="line">
+      {money(
+        q * Number(price || 0)
+      )}
+    </strong>
+
+  </article>
+
+</div>
                     <button
                       className={"check " + (c.bought ? "on" : "")}
                       onClick={() =>
