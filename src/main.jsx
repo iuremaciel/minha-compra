@@ -447,63 +447,59 @@ function App() {
     }
 
 
-    /*
-      ESQUERDA = EXCLUIR
-    */
+     // ESQUERDA = EDITAR
 
     if (dx < 0) {
 
-      setSwipe({
-        id,
-        dx: -145,
-        active: true,
-        action: "delete"
-      });
+  setSwipe({
+    id,
+    dx: -145,
+    active: true,
+    action: "edit"
+  });
 
-      setTimeout(() => {
+  setTimeout(() => {
 
-        removeProduct(id);
+    const product =
+      products.find(
+        (p) => p.id === id
+      );
 
-        setSwipe(null);
+    setSwipe(null);
 
-      }, 180);
+    if (product) {
 
-      return;
+      setModal(product);
+
+      setName(
+        product.name
+      );
+
     }
 
+  }, 180);
 
-    /*
-      DIREITA = EDITAR
-    */
-
-    setSwipe({
-      id,
-      dx: 145,
-      active: true,
-      action: "edit"
-    });
+  return;
+}
 
 
-    setTimeout(() => {
 
-      const product =
-        products.find(
-          (p) => p.id === id
-        );
+    // DIREITA = EXCLUIR
 
-      setSwipe(null);
+setSwipe({
+  id,
+  dx: 145,
+  active: true,
+  action: "delete"
+});
 
-      if (product) {
+setTimeout(() => {
 
-        setModal(product);
+  removeProduct(id);
 
-        setName(
-          product.name
-        );
+  setSwipe(null);
 
-      }
-
-    }, 180);
+}, 180);
 
   }
 
