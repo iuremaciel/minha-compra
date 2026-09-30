@@ -67,3 +67,161 @@ nav button.sel{color:#176b45}
 .toast{position:fixed;z-index:30;left:50%;bottom:140px;transform:translateX(-50%);background:#17382b;color:#fff;border-radius:11px;padding:10px 14px;font-size:13px;font-weight:700;white-space:nowrap}
 @media(min-width:650px){article{grid-template-columns:28px 1fr auto auto}.line{grid-column:auto;text-align:right;min-width:90px}.modal{border-radius:21px}}
 @media(max-width:420px){.title h1{font-size:22px}.add{padding:10px}.checkout>button{padding:11px 10px}}
+/* =====================================================
+   ANIMAÇÃO DOS GESTOS - VERSÃO 3
+   ===================================================== */
+
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  min-height: 92px;
+  isolation: isolate;
+}
+
+.swipe-card {
+  position: relative;
+  z-index: 3;
+
+  transition:
+    transform 180ms
+    cubic-bezier(.22,.8,.24,1);
+
+  will-change: transform;
+}
+
+.swiping .swipe-card {
+  transition: none;
+}
+
+.swipe-action {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 145px;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+
+  color: white;
+  font-weight: 850;
+  font-size: 12px;
+
+  opacity: 0;
+
+  transition:
+    opacity 120ms ease,
+    transform 160ms ease;
+}
+
+.swipe-delete {
+  left: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      #c92f3d,
+      #e85b65
+    );
+
+  justify-content: flex-start;
+  padding-left: 22px;
+
+  gap: 7px;
+
+  transform:
+    translateX(-12px);
+}
+
+.swipe-edit {
+  right: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      #1d8a5a,
+      #2cae73
+    );
+
+  justify-content: flex-end;
+  padding-right: 22px;
+
+  gap: 7px;
+
+  transform:
+    translateX(12px);
+}
+
+.swipe-row.swiping
+.swipe-delete,
+
+.swipe-row.swiping
+.swipe-edit {
+  opacity: 1;
+}
+
+.swipe-row.swiping
+.swipe-delete {
+  transform: translateX(0);
+}
+
+.swipe-row.swiping
+.swipe-edit {
+  transform: translateX(0);
+}
+
+.swipe-row.confirm-delete
+.swipe-delete,
+
+.swipe-row.confirm-edit
+.swipe-edit {
+  opacity: 1;
+
+  animation:
+    swipePulse 180ms ease;
+}
+
+.swipe-row.confirm-delete
+.swipe-card {
+  box-shadow:
+    0 0 0 2px #e85b65;
+}
+
+.swipe-row.confirm-edit
+.swipe-card {
+  box-shadow:
+    0 0 0 2px #2cae73;
+}
+
+.edit-icon {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+@keyframes swipePulse {
+
+  0% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.16);
+  }
+
+  100% {
+    filter: brightness(1);
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .swipe-card,
+  .swipe-action {
+    transition: none !important;
+    animation: none !important;
+  }
+
+}
