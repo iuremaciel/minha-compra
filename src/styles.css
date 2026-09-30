@@ -347,8 +347,8 @@ article {
   background:
     linear-gradient(
       90deg,
-      #c92f3d,
-      #e85b65
+      #1d8a5a,
+      #2cae73
     );
 
   justify-content: flex-start;
@@ -373,8 +373,8 @@ article {
   background:
     linear-gradient(
       90deg,
-      #1d8a5a,
-      #2cae73
+      #c92f3d,
+      #e85b65
     );
 
   justify-content: flex-end;
