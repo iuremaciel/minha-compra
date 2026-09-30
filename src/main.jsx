@@ -453,7 +453,7 @@ function App() {
 
   setSwipe({
     id,
-    dx: -145,
+    dx: 145,
     active: true,
     action: "edit"
   });
@@ -488,7 +488,7 @@ function App() {
 
 setSwipe({
   id,
-  dx: 145,
+  dx: -145,
   active: true,
   action: "delete"
 });
