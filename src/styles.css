@@ -5,7 +5,7 @@
 body {
   margin: 0;
 
-  background: #5A189A;
+  background: #f5f8f6;
 
   color: #18382b;
 
@@ -50,7 +50,7 @@ header {
 
   z-index: 5;
 
-  background: #176b45;
+  background: #5A189A;
 
   color: #fff;
 
@@ -173,9 +173,9 @@ main {
 
 .add {
 
-  background: #e0f2e9;
+  background: #f0e0ff;
 
-  color: #176b45;
+  color: #5A189A;
 }
 
 .clear-current {
@@ -545,9 +545,9 @@ article {
 
 .check.on {
 
-  background: #176b45;
+  background: #5A189A;
 
-  border-color: #176b45;
+  border-color: #5A189A;
 }
 
 
@@ -585,7 +585,7 @@ article {
 
   padding: 2px;
 
-  color: #176b45;
+  color: #5A189A;
 
   font-weight: 750;
 }
@@ -618,7 +618,7 @@ article {
 
   background: #f4f8f5;
 
-  color: #176b45;
+  color: #5A189A;
 
   font-size: 20px;
 }
@@ -733,14 +733,14 @@ article {
 
   font-size: 23px;
 
-  color: #176b45;
+  color: #5A189A;
 }
 
 .checkout > button {
 
   border: 0;
 
-  background: #176b45;
+  background: #5A189A;
 
   color: #fff;
 
@@ -819,7 +819,7 @@ nav button {
 
 nav button.sel {
 
-  color: #176b45;
+  color: #5A189A;
 }
 
 
@@ -882,9 +882,9 @@ nav button.sel {
 
   height: 40px;
 
-  background: #e0f2e9;
+  background: #f0e0ff;
 
-  color: #176b45;
+  color: #5A189A;
 
   border-radius: 11px;
 
@@ -913,7 +913,7 @@ nav button.sel {
 
 .history-open > strong {
 
-  color: #176b45;
+  color: #5A189A;
 }
 
 .history-delete {
@@ -1118,7 +1118,7 @@ nav button.sel {
 
   border: 0;
 
-  background: #176b45;
+  background: #5A189A;
 
   color: #fff;
 }
@@ -1173,7 +1173,7 @@ nav button.sel {
 
 .dt b {
 
-  color: #176b45;
+  color: #5A189A;
 }
 
 
