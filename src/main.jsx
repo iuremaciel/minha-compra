@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./styles.css";
+import { createRoot } from "react-dom/client";
 
 const STORAGE_KEY = "minha-compra-dados-v4";
 
@@ -902,3 +903,9 @@ return (
 }
 
 export default App;
+
+const rootElement = document.getElementById("root");
+
+if (rootElement) {
+  createRoot(rootElement).render(<App />);
+}
