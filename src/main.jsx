@@ -61,6 +61,9 @@ const money = (value) =>
 
 function App() {
 
+  const [confirmFinish, setConfirmFinish] =                                
+    useState(false);
+
   const [products, setProducts] =
     useState(() => load(PK, starter));
 
@@ -509,73 +512,48 @@ setTimeout(() => {
      ===================================================== */
 
   function finish() {
-
-    if (!count) {
-
-      showToast(
-        "Adicione pelo menos 1 item"
-      );
-
-      return;
-    }
-
-
-    const items =
-      products
-        .filter(
-          (p) =>
-            (cart[p.id]?.qty || 0) >
-            0
-        )
-        .map((p) => ({
-          name: p.name,
-
-          qty: Number(
-            cart[p.id].qty
-          ),
-
-          price: Number(
-            cart[p.id].price ??
-            p.price ??
-            0
-          )
-        }));
-
-
-    setHistory(
-      (current) => [
-        {
-          id: crypto.randomUUID(),
-
-          date:
-            new Date().toISOString(),
-
-          items,
-
-          total:
-            items.reduce(
-              (
-                sum,
-                item
-              ) =>
-                sum +
-                item.qty *
-                  item.price,
-              0
-            )
-        },
-
-        ...current
-      ]
-    );
-
-
-    setCart({});
-
-    showToast(
-      "Compra salva no histórico"
-    );
+  if (!count) {
+    showToast("Adicione pelo menos 1 item");
+    return;
   }
+
+  setConfirmFinish(true);
+}
+
+function confirmPurchase() {
+  const items = products
+    .filter((p) => Number(cart[p.id]?.qty || 0) > 0)
+    .map((p) => ({
+      name: p.name,
+      qty: Number(cart[p.id].qty),
+      price: Number(cart[p.id].price ?? p.price ?? 0)
+    }));
+
+  if (!items.length) {
+    setConfirmFinish(false);
+    showToast("Adicione pelo menos 1 item");
+    return;
+  }
+
+  const purchaseTotal = items.reduce(
+    (sum, item) => sum + item.qty * item.price,
+    0
+  );
+
+  setHistory((current) => [
+    {
+      id: crypto.randomUUID(),
+      date: new Date().toISOString(),
+      items,
+      total: purchaseTotal
+    },
+    ...current
+  ]);
+
+  setCart({});
+  setConfirmFinish(false);
+  showToast("Compra salva no histórico");
+}
 
 
   /* =====================================================
